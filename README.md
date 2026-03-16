@@ -49,3 +49,70 @@ The Python version improves upon the Bash toolkit by adding **colorized output, 
 ---
 
 # 📂 Project Structure
+VAPT-Toolkit-Pro-Python
+│
+├── vapt.py
+├── vapt_modules
+│ ├── banner.py
+│ ├── cors_check.py
+│ ├── dns_check.py
+│ ├── headers.py
+│ ├── output.py
+│ ├── port_scan.py
+│ ├── ssl_check.py
+│ └── vapt_summary.py
+│
+├── LICENSE
+└── README.md
+
+
+---
+
+# 📥 Installation
+
+### 1️⃣ Clone the Repository
+
+```bash
+git clone https://github.com/YOUR_USERNAME/VAPT-Toolkit-Pro-Python.git
+cd VAPT-Toolkit-Pro-Python
+2️⃣ Install Dependencies
+pip install requests colorama
+▶️ Usage
+
+Run the toolkit:
+
+python3 vapt.py
+
+Python 3.8+
+
+requests
+
+colorama
+
+Supported Platforms:
+
+Linux
+
+macOS
+
+Windows
+
+⚡ Future Improvements
+
+Planned features for upcoming versions:
+
+Automated full scan mode
+
+Technology fingerprinting
+
+
+📄 License
+
+This project is licensed under the MIT License.
+See the LICENSE file for details.
+
+⚠️ Disclaimer
+
+This tool is intended for educational purposes and authorized security testing only.
+
+Running security scans against systems without permission is illegal and may violate local laws.
