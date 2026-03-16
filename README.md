@@ -105,7 +105,7 @@ To launch the toolkit's interactive menu, simply execute the main script:
 python3 vapt.py
 ```
 
-![alt text](image.png)
+![VAPT Toolkit PRO CLI Menu](SS.png)
 
 Provide target URLs, domains, or IP addresses as prompted by individual modules. The toolkit will run the relevant security checks and display its findings.
 
