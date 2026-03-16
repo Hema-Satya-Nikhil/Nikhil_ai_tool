@@ -32,87 +32,109 @@ The Python version improves upon the Bash toolkit by adding **colorized output, 
 
 ---
 
-# 🛠️ Included Modules
+## 🛠️ Included Modules
 
 | Module | Description |
 |------|-------------|
-| **Headers Check** | Detects missing HTTP security headers (CSP, HSTS, XFO, Referrer-Policy, etc.) |
-| **SSL/TLS Audit** | Validates certificate details and TLS configuration |
-| **DNS Misconfiguration** | Checks origin exposure for potential CDN/WAF bypass |
-| **Port Scanner** | Multi-threaded scanner for common open ports |
-| **CORS Check** | Detects CORS misconfigurations such as wildcard or reflected origins |
-| **Output Engine** | Provides colorized terminal output similar to Kali tools |
-| **Banner Module** | Displays ASCII banner and CLI interface |
-| **Vulnerability Summary** | Generates a summary of detected issues |
+| **1. HTTP Security Headers Check** | Detects missing HTTP security headers (CSP, HSTS, XFO, Referrer-Policy, etc.) |
+| **2. SSL/TLS Audit** | Validates certificate details and TLS configuration |
+| **3. Origin Exposure Check** | Checks DNS origin exposure for potential CDN/WAF bypass |
+| **4. Port Scanner** | Multi-threaded scanner for common open ports |
+| **5. CORS Misconfiguration Check** | Detects CORS misconfigurations such as wildcard or reflected origins |
+| **6. Vulnerability Summary** | Generates a summary of all detected security issues |
 
---More are Coming Soon--
----
-
-# 📂 Project Structure
-VAPT-Toolkit-Pro-Python
-│
-├── vapt.py
-├── vapt_modules
-│ ├── banner.py
-│ ├── cors_check.py
-│ ├── dns_check.py
-│ ├── headers.py
-│ ├── output.py
-│ ├── port_scan.py
-│ ├── ssl_check.py
-│ └── vapt_summary.py
-│
-├── LICENSE
-└── README.md
-
+*(More modules are coming soon!)*
 
 ---
 
-# 📥 Installation
+## 📂 Project Structure
 
-### 1️⃣ Clone the Repository
+```text
+VAPT-Toolkit-Pro (Python)
+│
+├── vapt.py                   # Main entry point and menu
+├── vapt_modules/             # Scanner modules directory
+│   ├── banner.py             # Displays ASCII banner
+│   ├── cors_check.py         # CORS misconfiguration check logic
+│   ├── dns_check.py          # Origin exposure check logic
+│   ├── headers.py            # HTTP security headers check logic
+│   ├── output.py             # Output formatting and color utilities
+│   ├── port_scan.py          # Port scanner implementation
+│   ├── ssl_check.py          # SSL/TLS auditing logic
+│   └── vapt_summary.py       # Vulnerability summary generator
+│
+├── LICENSE                   # MIT License
+└── README.md                 # Project Documentation
+```
+
+---
+
+## 📥 Installation
+
+### 1️⃣ Prerequisites
+
+Ensure you have the following installed on your system:
+- Python 3.8+
+- `pip` (Python package manager)
+
+### 2️⃣ Clone the Repository
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/VAPT-Toolkit-Pro-Python.git
-cd VAPT-Toolkit-Pro-Python
-2️⃣ Install Dependencies
+cd "VAPT-Toolkit-Pro-Python"
+```
+*(Make sure to adjust the folder name to match your cloned repository's name if it differs.)*
+
+### 3️⃣ Install Dependencies
+
+Install the required external libraries (`requests` and `colorama`) by running:
+
+```bash
 pip install requests colorama
-▶️ Usage
+```
 
-Run the toolkit:
+*(If a `requirements.txt` file is present, you can alternately run `pip install -r requirements.txt`)*
 
+---
+
+## ▶️ Usage
+
+To launch the toolkit's interactive menu, simply execute the main script:
+
+```bash
 python3 vapt.py
+```
 
-Python 3.8+
+Provide target URLs, domains, or IP addresses as prompted by individual modules. The toolkit will run the relevant security checks and display its findings.
 
-requests
+### Example Menu Options:
+1. `HTTP Security Headers Check` - Enter a target URL (e.g., `example.com`).
+2. `SSL/TLS Audit` - Enter a target domain name.
+3. `Origin Exposure Check` - Enter a target domain name.
+4. `Port Scanner` - Enter a target host/IP.
+5. `CORS Misconfiguration Check` - Enter a target URL.
+6. `Show Vulnerability Summary` - View the combined findings of all executed scans.
+7. `Exit` - Close the toolkit.
 
-colorama
+---
 
-Supported Platforms:
-
-Linux
-
-macOS
-
-Windows
-
-⚡ Future Improvements
+## ⚡ Future Improvements
 
 Planned features for upcoming versions:
+- Automated full scan mode (run all modules sequentially)
+- Technology fingerprinting and stack detection
 
-Automated full scan mode
+---
 
-Technology fingerprinting
+## 📄 License
 
+This project is licensed under the MIT License. See the `LICENSE` file for details.
 
-📄 License
+---
 
-This project is licensed under the MIT License.
-See the LICENSE file for details.
+## ⚠️ Disclaimer
 
-⚠️ Disclaimer
-
-This tool is intended for educational purposes and authorized security testing only.
-
-Running security scans against systems without permission is illegal and may violate local laws.
+- This tool is intended strictly for **educational purposes and authorized security testing only.**
+- Running security scans against systems, networks, or applications without explicit permission is illegal and may violate local or international laws.
+- The developers assume **no liability** and are not responsible for any misuse, damage, or legal consequences caused by executing this program. Use responsibly.
+ 
