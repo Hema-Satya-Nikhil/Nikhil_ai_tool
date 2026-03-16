@@ -12,7 +12,6 @@ from vapt_modules.ssl_check import check_ssl
 from vapt_modules.dns_check import check_dns
 from vapt_modules.cors_check import check_cors
 from vapt_modules.port_scan import scan_ports
-from vapt_modules.vapt_summary import show
 
 
 # -------------------------------------------------
@@ -60,8 +59,7 @@ def menu():
 3. Origin Exposure Check
 4. Port Scanner
 5. CORS Misconfiguration Check
-6. Show Vulnerability Summary
-7. Exit
+6. Exit
 """)
 
 
@@ -130,10 +128,6 @@ def main():
                 check_cors(target)
 
             elif choice == "6":
-
-                show()
-
-            elif choice == "7":
 
                 print("Exiting VAPT Toolkit Pro")
                 sys.exit()

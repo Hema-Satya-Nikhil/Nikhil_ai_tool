@@ -27,9 +27,6 @@ The Python version improves upon the Bash toolkit by adding **colorized output, 
 - **Security-Focused Design**  
   Includes basic input validation to prevent misuse and reduce SSRF risks.
 
-- **Automated Vulnerability Summary**  
-  Displays a consolidated list of detected issues after scans.
-
 ---
 
 ## 🛠️ Included Modules
@@ -41,7 +38,6 @@ The Python version improves upon the Bash toolkit by adding **colorized output, 
 | **3. Origin Exposure Check** | Checks DNS origin exposure for potential CDN/WAF bypass |
 | **4. Port Scanner** | Multi-threaded scanner for common open ports |
 | **5. CORS Misconfiguration Check** | Detects CORS misconfigurations such as wildcard or reflected origins |
-| **6. Vulnerability Summary** | Generates a summary of all detected security issues |
 
 *(More modules are coming soon!)*
 
@@ -61,7 +57,6 @@ VAPT-Toolkit-Pro (Python)
 │   ├── output.py             # Output formatting and color utilities
 │   ├── port_scan.py          # Port scanner implementation
 │   ├── ssl_check.py          # SSL/TLS auditing logic
-│   └── vapt_summary.py       # Vulnerability summary generator
 │
 ├── LICENSE                   # MIT License
 └── README.md                 # Project Documentation
@@ -115,8 +110,7 @@ Provide target URLs, domains, or IP addresses as prompted by individual modules.
 3. `Origin Exposure Check` - Enter a target domain name.
 4. `Port Scanner` - Enter a target host/IP.
 5. `CORS Misconfiguration Check` - Enter a target URL.
-6. `Show Vulnerability Summary` - View the combined findings of all executed scans.
-7. `Exit` - Close the toolkit.
+6. `Exit` - Close the toolkit.
 
 ---
 
