@@ -45,6 +45,7 @@ The Python version improves upon the Bash toolkit by adding **colorized output, 
 | **Banner Module** | Displays ASCII banner and CLI interface |
 | **Vulnerability Summary** | Generates a summary of detected issues |
 
+--More are Coming Soon--
 ---
 
 # 📂 Project Structure
