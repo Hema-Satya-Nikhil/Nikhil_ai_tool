@@ -1,136 +1,162 @@
-# 🛡️ VAPT Toolkit Pro (Python Edition)
+# VAPT Toolkit Pro (Python Edition)
 
-A professional, menu-driven **VAPT (Vulnerability Assessment and Penetration Testing)** toolkit written in **Python**.  
-This tool is designed for **security researchers, penetration testers, bug bounty hunters, and system administrators** to quickly perform automated security checks directly from the terminal.
+VAPT Toolkit Pro is a menu-driven terminal toolkit for fast, practical web and network security checks.
+It is built for security testers who want strong scan visibility directly in one CLI workflow.
 
-The Python version improves upon the Bash toolkit by adding **colorized output, threaded scanning, modular architecture, and improved cross-platform compatibility.**
+## Highlights
 
----
+- Kali-style CLI layout with clean module navigation.
+- Modular scanner architecture inside `vapt_modules/`.
+- Enhanced raw evidence output for HTTP and CORS checks.
+- Lightweight but improved port and TLS analysis.
+- Graceful operator controls (`clear`, `exit`, `Ctrl+C`).
 
-## 🚀 Key Features
+## Included Modules
 
-- **Unified CLI Interface**  
-  One command to launch a menu-driven security toolkit with a clean ASCII banner.
+1. HTTP Security Headers Check (MSH)
+2. DNS Misconfiguration Check (Origin Exposure)
+3. SSL/TLS Configuration Audit
+4. Open Port Scanner
+5. CORS Misconfiguration Check
+6. Exit
 
-- **Modular Architecture**  
-  Each scanner runs as an independent module inside `vapt_modules/`.
+## Module Details
 
-- **Colorized Terminal Output**  
-  Professional CLI output similar to Kali Linux tools.
+### 1) HTTP Security Headers Check
 
-- **Threaded Scanning**  
-  Fast multi-threaded port scanning for improved performance.
+- Shows raw HTTP response status and all discovered response headers first.
+- Runs "Analyzing HTTP headers" progress bar.
+- Checks required security headers:
+  - `Content-Security-Policy`
+  - `Strict-Transport-Security`
+  - `X-Frame-Options`
+  - `X-Content-Type-Options`
+  - `Referrer-Policy`
+- Performs strength review for:
+  - CSP (unsafe directives/wildcards/missing baseline)
+  - HSTS (`max-age`, `includeSubDomains`, `preload`)
 
-- **Cross Platform Support**  
-  Works on **Linux, macOS, and Windows**.
+### 2) DNS Misconfiguration Check
 
-- **Security-Focused Design**  
-  Includes basic input validation to prevent misuse and reduce SSRF risks.
+- Resolves the target domain to IP.
+- Validates whether resolved IP is public.
+- Tests direct public-IP website visibility.
+- Flags potential issue when direct public-IP access is reachable/visible (for your origin exposure use case).
 
----
+### 3) SSL/TLS Configuration Audit
 
-## 🛠️ Included Modules
+- Native SSL snapshot:
+  - Negotiated TLS version and cipher
+  - Certificate issuer/subject/validity
+  - Certificate expiry window alerts
+- Native protocol probe:
+  - Checks support for TLSv1.0, TLSv1.1, TLSv1.2, TLSv1.3
+  - Warns on legacy protocol exposure
+- Optional external deep scans (if installed):
+  - `nmap --script ssl-enum-ciphers,ssl-cert -p 443 <domain>`
+  - `sslyze --regular <domain>:443`
 
-| Module | Description |
-|------|-------------|
-| **1. HTTP Security Headers Check** | Detects missing HTTP security headers (CSP, HSTS, XFO, Referrer-Policy, etc.) |
-| **2. SSL/TLS Audit** | Validates certificate details and TLS configuration |
-| **3. Origin Exposure Check** | Checks DNS origin exposure for potential CDN/WAF bypass |
-| **4. Port Scanner** | Multi-threaded scanner for common open ports |
-| **5. CORS Misconfiguration Check** | Detects CORS misconfigurations such as wildcard or reflected origins |
+### 4) Open Port Scanner
 
-*(More modules are coming soon!)*
+- Fast threaded scan over curated common TCP ports.
+- Displays target and resolved IP.
+- Nmap-like result table layout:
+  - `PORT`, `STATE`, `SERVICE`, `DETAILS`
+- Lightweight service enumeration with protocol-aware hints:
+  - Banner hints (FTP/SSH/SMTP/POP3/IMAP)
+  - HTTP probe hints
+  - HTTPS/TLS probe hints
 
----
+### 5) CORS Misconfiguration Check
 
-## 📂 Project Structure
+- Uses malicious test origin domain format (`evil.com`) by default.
+- Ensures `Origin` header is injected/replaced for testing.
+- Prints:
+  - `Raw Request`
+  - `Raw Response`
+- Analyzes CORS behavior and flags:
+  - `200 OK` + `Access-Control-Allow-Origin: *`
+  - `200 OK` + reflected/accepted test origin
+  - Risky credential behavior with permissive origin rules
+
+## Operator Controls
+
+At main menu prompt:
+
+- Type `clear` to clear terminal screen and redraw menu.
+- Type `exit` in any case format (`exit`, `Exit`, `eXiT`) to quit.
+- Press `Ctrl+C` to exit gracefully.
+- Arrow-key escape input is guarded to avoid junk menu actions.
+
+## Project Structure
 
 ```text
 VAPT-Toolkit-Pro (Python)
-│
-├── vapt.py                   # Main entry point and menu
-├── vapt_modules/             # Scanner modules directory
-│   ├── banner.py             # Displays ASCII banner
-│   ├── cors_check.py         # CORS misconfiguration check logic
-│   ├── dns_check.py          # Origin exposure check logic
-│   ├── headers.py            # HTTP security headers check logic
-│   ├── output.py             # Output formatting and color utilities
-│   ├── port_scan.py          # Port scanner implementation
-│   ├── ssl_check.py          # SSL/TLS auditing logic
-│
-├── LICENSE                   # MIT License
-└── README.md                 # Project Documentation
+├── vapt.py
+├── install_deps.py
+├── requirements.txt
+├── vapt_modules/
+│   ├── __init__.py
+│   ├── banner.py
+│   ├── cors_check.py
+│   ├── dns_check.py
+│   ├── headers.py
+│   ├── output.py
+│   ├── port_scan.py
+│   └── ssl_check.py
+├── LICENSE
+└── README.md
 ```
 
----
+## Installation
 
-## 📥 Installation
+### Prerequisites
 
-### 1️⃣ Prerequisites
-
-Ensure you have the following installed on your system:
 - Python 3.8+
-- `pip` (Python package manager)
+- `pip`
 
-### 2️⃣ Clone the Repository
+### Install
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/VAPT-Toolkit-Pro-Python.git
 cd "VAPT-Toolkit-Pro-Python"
+python3 install_deps.py
 ```
-*(Make sure to adjust the folder name to match your cloned repository's name if it differs.)*
 
-### 3️⃣ Install Dependencies
+This installer is cross-platform and force-reinstalls dependencies, so users do not get stuck with partial/old environments.
+It also checks optional tooling (`nmap`, `sslyze`) used by the SSL/TLS module.
 
-Install the required external libraries (`requests` and `colorama`) by running:
+Manual fallback:
 
 ```bash
-pip install requests colorama
+python3 -m pip install --upgrade --force-reinstall -r requirements.txt
 ```
 
-*(If a `requirements.txt` file is present, you can alternately run `pip install -r requirements.txt`)*
-
----
-
-## ▶️ Usage
-
-To launch the toolkit's interactive menu, simply execute the main script:
+## Usage
 
 ```bash
 python3 vapt.py
 ```
 
-![VAPT Toolkit PRO CLI Menu](Screenshot.png)
+Then select module number `1` to `6`.
 
-Provide target URLs, domains, or IP addresses as prompted by individual modules. The toolkit will run the relevant security checks and display its findings.
+## Tool Preview
 
-### Example Menu Options:
-1. `HTTP Security Headers Check` - Enter a target URL (e.g., `example.com`).
-2. `SSL/TLS Audit` - Enter a target domain name.
-3. `Origin Exposure Check` - Enter a target domain name.
-4. `Port Scanner` - Enter a target host/IP.
-5. `CORS Misconfiguration Check` - Enter a target URL.
-6. `Exit` - Close the toolkit.
+![VAPT Toolkit Pro CLI Preview](image.png)
 
----
+## Notes on Optional SSL Tooling
 
-## ⚡ Future Improvements
+Module 3 auto-detects external tools:
 
-Planned features for upcoming versions:
-- Automated full scan mode (run all modules sequentially)
-- Technology fingerprinting and stack detection
+- If `nmap` is present, SSL scripts are executed.
+- If `sslyze` is present, regular SSLyze scan is executed.
+- If missing, scan continues with native Python checks only.
 
----
+## Disclaimer
 
-## 📄 License
+Use this tool only on systems you own or are explicitly authorized to test.
+Unauthorized scanning is illegal and may violate applicable laws.
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+## License
 
----
-
-## ⚠️ Disclaimer
-
-- This tool is intended strictly for **educational purposes and authorized security testing only.**
-- Running security scans against systems, networks, or applications without explicit permission is illegal and may violate local or international laws.
-- The developers assume **no liability** and are not responsible for any misuse, damage, or legal consequences caused by executing this program. Use responsibly.
- 
+MIT License. See `LICENSE`.

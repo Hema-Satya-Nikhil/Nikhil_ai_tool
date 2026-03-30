@@ -3,6 +3,8 @@
 .spago
 bower_components
 node_modules
+__pycache__
+.vscode
 
 # Generated files
 .psci

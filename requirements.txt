@@ -1,0 +1,14 @@
+# Core runtime dependencies (required on Kali/Linux/macOS/Windows)
+requests>=2.31.0
+colorama>=0.4.6
+
+# Optional (advanced SSL/TLS module integrations):
+# sslyze provides the `sslyze` CLI used by Module 3 when available.
+# Uncomment if you want SSLyze integration through pip install.
+# sslyze>=6.0.0
+
+# Note:
+# `nmap` is used as an external system tool (not a pip package).
+# Install it via OS package manager:
+# - Kali/Debian: sudo apt install nmap
+# - Windows: install Nmap from https://nmap.org/download.html

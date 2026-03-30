@@ -1,39 +1,49 @@
 import socket
+import ipaddress
 import requests
+from vapt_modules.output import header, info, good, warn, vuln, kv
+
+
+def _is_public_ip(ip: str) -> bool:
+    obj = ipaddress.ip_address(ip)
+    return not (
+        obj.is_private
+        or obj.is_loopback
+        or obj.is_link_local
+        or obj.is_multicast
+        or obj.is_reserved
+        or obj.is_unspecified
+    )
+
 
 def check_dns(domain):
+    header("Origin Exposure Check")
 
     try:
-        print("\n[+] Resolving domain...")
+        info("Resolving domain")
 
         ip = socket.gethostbyname(domain)
+        kv("Domain", domain)
+        kv("Resolved IP", ip)
 
-        print(f"[+] {domain} resolves to {ip}")
+        if not _is_public_ip(ip):
+            warn("Resolved IP is not public. Direct public-IP visibility test not applicable.")
+            return
 
+        info("Resolved IP is public. Testing direct access via public IP.")
+
+        headers = {"User-Agent": "VAPT-Toolkit-Pro"}
         url = f"http://{ip}"
+        r = requests.get(url, headers=headers, timeout=6, allow_redirects=True)
+        kv("HTTP Status", r.status_code)
 
-        print("\n[+] Sending request directly to origin IP")
+        body = (r.text or "").strip().lower()
+        looks_visible = any(tag in body for tag in ["<html", "<title", "<body"])
 
-        headers = {
-            "Host": domain,
-            "User-Agent": "VAPT-Toolkit-Pro"
-        }
-
-        r = requests.get(url, headers=headers, timeout=5, allow_redirects=False)
-
-        print(f"[+] Response Status Code: {r.status_code}")
-
-        if r.status_code == 200:
-            print("[!] Potential Origin Exposure (200 OK returned from IP)")
-
-        elif r.status_code in [301,302,307,308]:
-            print("[OK] Redirect detected (likely protected)")
-
-        elif r.status_code == 403:
-            print("[OK] Access forbidden (WAF or protection detected)")
-
+        if r.status_code == 200 or looks_visible:
+            warn("Potential Origin Exposure: Public IP is directly accessible/visible")
         else:
-            print("[INFO] Unexpected response:", r.status_code)
+            good("No direct website visibility detected on public IP")
 
     except Exception as e:
-        print("[-] DNS Misconfiguration check failed:", e)
+        vuln(f"Origin exposure check failed: {e}")
