@@ -2,6 +2,10 @@
 requests>=2.31.0
 colorama>=0.4.6
 
+# Web framework for frontend dashboard
+Flask>=2.3.0
+Flask-CORS>=4.0.0
+
 # Optional (advanced SSL/TLS module integrations):
 # sslyze provides the `sslyze` CLI used by Module 3 when available.
 # Uncomment if you want SSLyze integration through pip install.

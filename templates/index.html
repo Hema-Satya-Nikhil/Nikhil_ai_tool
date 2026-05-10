@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIKHIL AI - Vulnerability Assessment & Penetration Testing</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Matrix Background -->
+        <div class="matrix-bg"></div>
+        
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-content">
+                <div class="logo">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>NIKHIL AI</span>
+                </div>
+                <div class="nav-status">
+                    <span class="status-indicator"></span>
+                    <span id="status-text">READY</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h3><i class="fas fa-cog"></i> SCAN MODULES</h3>
+                </div>
+                <div class="module-list">
+                    <button class="module-btn active" data-module="all" onclick="selectModule('all')">
+                        <i class="fas fa-radiation"></i>
+                        <span>Full Scan</span>
+                    </button>
+                    <button class="module-btn" data-module="headers" onclick="selectModule('headers')">
+                        <i class="fas fa-heading"></i>
+                        <span>Security Headers</span>
+                    </button>
+                    <button class="module-btn" data-module="ssl" onclick="selectModule('ssl')">
+                        <i class="fas fa-lock"></i>
+                        <span>SSL/TLS Audit</span>
+                    </button>
+                    <button class="module-btn" data-module="dns" onclick="selectModule('dns')">
+                        <i class="fas fa-network-wired"></i>
+                        <span>DNS Check</span>
+                    </button>
+                    <button class="module-btn" data-module="cors" onclick="selectModule('cors')">
+                        <i class="fas fa-share-alt"></i>
+                        <span>CORS Check</span>
+                    </button>
+                    <button class="module-btn" data-module="ports" onclick="selectModule('ports')">
+                        <i class="fas fa-door-open"></i>
+                        <span>Port Scan</span>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Scanner Panel -->
+            <section class="scanner-panel">
+                <!-- Header Section -->
+                <div class="scanner-header">
+                    <h1 class="glitch" data-text="VULNERABILITY SCANNER">VULNERABILITY SCANNER</h1>
+                    <p class="subtitle">Professional Security Assessment Tool</p>
+                </div>
+
+                <!-- Input Section -->
+                <div class="input-section">
+                    <div class="input-group">
+                        <label for="target-url">Target URL</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-globe"></i>
+                            <input 
+                                type="text" 
+                                id="target-url" 
+                                placeholder="https://example.com or example.com"
+                                class="target-input"
+                            >
+                            <button class="validate-btn" onclick="validateTarget()">
+                                <i class="fas fa-check-circle"></i>
+                            </button>
+                        </div>
+                        <small id="input-feedback"></small>
+                    </div>
+                </div>
+
+                <!-- Scan Controls -->
+                <div class="control-section">
+                    <button class="scan-btn" onclick="startScan()" id="scan-button">
+                        <i class="fas fa-play-circle"></i>
+                        <span>INITIATE SCAN</span>
+                    </button>
+                    <button class="reset-btn" onclick="resetScanner()">
+                        <i class="fas fa-redo"></i>
+                        <span>RESET</span>
+                    </button>
+                </div>
+
+                <!-- Progress Section -->
+                <div class="progress-section" id="progress-section" style="display: none;">
+                    <div class="progress-header">
+                        <h3><i class="fas fa-spinner fa-spin"></i> Scanning...</h3>
+                        <span class="scan-timer" id="scan-timer">0s</span>
+                    </div>
+                    <div class="progress-bars">
+                        <div class="progress-item">
+                            <label>Headers Analysis</label>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-headers"></div>
+                            </div>
+                        </div>
+                        <div class="progress-item">
+                            <label>SSL/TLS Audit</label>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-ssl"></div>
+                            </div>
+                        </div>
+                        <div class="progress-item">
+                            <label>DNS Resolution</label>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-dns"></div>
+                            </div>
+                        </div>
+                        <div class="progress-item">
+                            <label>CORS Validation</label>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-cors"></div>
+                            </div>
+                        </div>
+                        <div class="progress-item">
+                            <label>Port Enumeration</label>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-ports"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Section -->
+                <div class="results-section" id="results-section" style="display: none;">
+                    <div class="results-header">
+                        <h3><i class="fas fa-file-alt"></i> SCAN RESULTS</h3>
+                        <button class="export-btn" onclick="exportResults()">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="results-tabs">
+                        <button class="tab-btn active" onclick="switchTab('summary')">
+                            <i class="fas fa-chart-pie"></i> Summary
+                        </button>
+                        <button class="tab-btn" onclick="switchTab('headers')">
+                            <i class="fas fa-heading"></i> Headers
+                        </button>
+                        <button class="tab-btn" onclick="switchTab('ssl')">
+                            <i class="fas fa-lock"></i> SSL/TLS
+                        </button>
+                        <button class="tab-btn" onclick="switchTab('dns')">
+                            <i class="fas fa-network-wired"></i> DNS
+                        </button>
+                        <button class="tab-btn" onclick="switchTab('cors')">
+                            <i class="fas fa-share-alt"></i> CORS
+                        </button>
+                        <button class="tab-btn" onclick="switchTab('ports')">
+                            <i class="fas fa-door-open"></i> Ports
+                        </button>
+                    </div>
+
+                    <!-- Tab Contents -->
+                    <div class="tab-content">
+                        <div id="tab-summary" class="tab-pane active">
+                            <div class="summary-grid" id="summary-content"></div>
+                        </div>
+                        <div id="tab-headers" class="tab-pane">
+                            <div class="result-content" id="headers-content"></div>
+                        </div>
+                        <div id="tab-ssl" class="tab-pane">
+                            <div class="result-content" id="ssl-content"></div>
+                        </div>
+                        <div id="tab-dns" class="tab-pane">
+                            <div class="result-content" id="dns-content"></div>
+                        </div>
+                        <div id="tab-cors" class="tab-pane">
+                            <div class="result-content" id="cors-content"></div>
+                        </div>
+                        <div id="tab-ports" class="tab-pane">
+                            <div class="result-content" id="ports-content"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error Section -->
+                <div class="error-section" id="error-section" style="display: none;">
+                    <div class="error-box">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p id="error-message"></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Info Panel -->
+            <aside class="info-panel">
+                <div class="info-card">
+                    <h4><i class="fas fa-info-circle"></i> Quick Info</h4>
+                    <p id="info-text">Select a scan module and enter target URL to begin vulnerability assessment.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-shield-alt"></i> Security Notice</h4>
+                    <p>Use this tool only on systems you own or have explicit permission to test. Unauthorized access is illegal.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-code"></i> Developer</h4>
+                    <p><strong>NIKHIL</strong><br>GitHub: @Hema-Satya-Nikhil</p>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
