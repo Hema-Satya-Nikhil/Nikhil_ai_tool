@@ -178,6 +178,7 @@ async function startScan() {
 
         if (response.ok) {
             scanResults = data.data;
+            console.log('Scan results received:', scanResults);
             completeProgress();
             showResults();
             showToast('Scan completed successfully', 'success');
@@ -185,6 +186,7 @@ async function startScan() {
             showError(data.error || 'Scan failed');
         }
     } catch (error) {
+        console.error('Scan error:', error);
         showError('Error: ' + error.message);
     } finally {
         clearInterval(timerInterval);
@@ -264,21 +266,40 @@ function displayTabContent(tab) {
         return;
     }
     
+    console.log(`Displaying tab: ${tab}, scanResults:`, scanResults);
+    
     if (tab === 'summary') {
         displaySummary(content);
-    } else if (tab === 'headers' && scanResults && scanResults.headers) {
-        displayHeaders(content, scanResults.headers);
-    } else if (tab === 'ssl' && scanResults && scanResults.ssl) {
-        displaySSL(content, scanResults.ssl);
-    } else if (tab === 'dns' && scanResults && scanResults.dns) {
-        displayDNS(content, scanResults.dns);
-    } else if (tab === 'cors' && scanResults && scanResults.cors) {
-        displayCORS(content, scanResults.cors);
-    } else if (tab === 'ports' && scanResults && scanResults.ports) {
-        displayPorts(content, scanResults.ports);
-    } else if (scanResults) {
-        // Fallback for missing tab data
-        content.innerHTML = '<p>No data available for this tab</p>';
+    } else if (tab === 'headers') {
+        if (scanResults && scanResults.headers) {
+            displayHeaders(content, scanResults.headers);
+        } else {
+            content.innerHTML = '<div class="result-card"><p>No headers data available</p></div>';
+        }
+    } else if (tab === 'ssl') {
+        if (scanResults && scanResults.ssl) {
+            displaySSL(content, scanResults.ssl);
+        } else {
+            content.innerHTML = '<div class="result-card"><p>No SSL data available</p></div>';
+        }
+    } else if (tab === 'dns') {
+        if (scanResults && scanResults.dns) {
+            displayDNS(content, scanResults.dns);
+        } else {
+            content.innerHTML = '<div class="result-card"><p>No DNS data available</p></div>';
+        }
+    } else if (tab === 'cors') {
+        if (scanResults && scanResults.cors) {
+            displayCORS(content, scanResults.cors);
+        } else {
+            content.innerHTML = '<div class="result-card"><p>No CORS data available</p></div>';
+        }
+    } else if (tab === 'ports') {
+        if (scanResults && scanResults.ports) {
+            displayPorts(content, scanResults.ports);
+        } else {
+            content.innerHTML = '<div class="result-card"><p>No ports data available</p></div>';
+        }
     }
 }
 
@@ -326,20 +347,32 @@ function displayHeaders(content, headers) {
 
     let html = '<div class="result-content">';
     
-    if (headers.missing && headers.missing.length > 0) {
-        html += '<div class="result-card warning"><h4>⚠️ Missing Headers</h4>';
+    // Handle error case
+    if (headers.error) {
+        html += `<div class="result-card danger"><h4>⚠️ Error</h4><p>${headers.error}</p></div>`;
+        content.innerHTML = html + '</div>';
+        return;
+    }
+    
+    if (headers.missing && Array.isArray(headers.missing) && headers.missing.length > 0) {
+        html += '<div class="result-card warning"><h4><i class="fas fa-exclamation-circle"></i> Missing Headers</h4>';
         headers.missing.forEach(header => {
             html += `<p>• ${header}</p>`;
         });
         html += '</div>';
     }
 
-    if (headers.present && Object.keys(headers.present).length > 0) {
-        html += '<div class="result-card success"><h4>✓ Present Headers</h4>';
+    if (headers.present && typeof headers.present === 'object' && Object.keys(headers.present).length > 0) {
+        html += '<div class="result-card success"><h4><i class="fas fa-check-circle"></i> Present Headers</h4>';
         Object.entries(headers.present).forEach(([header, value]) => {
-            html += `<p><strong>${header}:</strong> ${formatValue(value).substring(0, 50)}...</p>`;
+            const displayValue = formatValue(value).substring(0, 100);
+            html += `<p><strong>${header}:</strong> <span style="color: var(--secondary);">${displayValue}</span></p>`;
         });
         html += '</div>';
+    }
+
+    if (!headers.missing && !headers.present) {
+        html += '<div class="result-card"><p>No header information available</p></div>';
     }
 
     html += '</div>';
@@ -349,24 +382,54 @@ function displayHeaders(content, headers) {
 function displaySSL(content, ssl) {
     let html = '<div class="result-content">';
     
-    if (ssl.certificate) {
-        html += '<div class="result-card success"><h4>🔒 Certificate Info</h4>';
-        Object.entries(ssl.certificate).forEach(([key, value]) => {
-            if (value) {
-                html += `<p><strong>${key}:</strong> ${String(value).substring(0, 50)}</p>`;
+    // Handle error case
+    if (ssl.error) {
+        html += `<div class="result-card danger"><h4><i class="fas fa-exclamation-circle"></i> Error</h4><p>${ssl.error}</p></div>`;
+        content.innerHTML = html + '</div>';
+        return;
+    }
+    
+    if (ssl.certificate && typeof ssl.certificate === 'object') {
+        const cert = ssl.certificate;
+        html += '<div class="result-card success"><h4><i class="fas fa-lock"></i> Certificate Info</h4>';
+        
+        if (cert.issuer) html += `<p><strong>Issuer:</strong> ${cert.issuer}</p>`;
+        if (cert.subject) html += `<p><strong>Subject:</strong> ${cert.subject}</p>`;
+        if (cert.version) html += `<p><strong>Version:</strong> ${cert.version}</p>`;
+        if (cert.serial) html += `<p><strong>Serial:</strong> ${cert.serial}</p>`;
+        if (cert.not_before) html += `<p><strong>Valid From:</strong> ${cert.not_before}</p>`;
+        if (cert.not_after) html += `<p><strong>Valid Until:</strong> ${cert.not_after}</p>`;
+        
+        html += '</div>';
+    }
+
+    if (ssl.protocols && typeof ssl.protocols === 'object') {
+        html += '<div class="result-card"><h4><i class="fas fa-layer-group"></i> SSL/TLS Protocols</h4>';
+        const protocols = Object.entries(ssl.protocols);
+        if (protocols.length > 0) {
+            protocols.forEach(([proto, supported]) => {
+                const status = supported ? '✓ Enabled' : '✗ Disabled';
+                const color = supported ? 'var(--primary)' : 'var(--text-dim)';
+                html += `<p><span style="color: ${color}; font-weight: bold;">${status}:</span> ${proto}</p>`;
+            });
+        } else {
+            html += '<p>No protocol information available</p>';
+        }
+        html += '</div>';
+    }
+
+    if (ssl.cipher_suites && typeof ssl.cipher_suites === 'object' && Object.keys(ssl.cipher_suites).length > 0) {
+        html += '<div class="result-card"><h4><i class="fas fa-key"></i> Cipher Suites</h4>';
+        Object.entries(ssl.cipher_suites).forEach(([type, ciphers]) => {
+            if (Array.isArray(ciphers) && ciphers.length > 0) {
+                html += `<p><strong>${type}:</strong> ${ciphers.join(', ').substring(0, 100)}...</p>`;
             }
         });
         html += '</div>';
     }
 
-    if (ssl.protocols) {
-        html += '<div class="result-card"><h4>📋 Protocols</h4>';
-        Object.entries(ssl.protocols).forEach(([proto, supported]) => {
-            const status = supported ? '✓' : '✗';
-            const color = supported ? 'var(--primary)' : 'var(--text-dim)';
-            html += `<p><span style="color: ${color}">${status}</span> ${proto}</p>`;
-        });
-        html += '</div>';
+    if (!ssl.certificate && !ssl.protocols) {
+        html += '<div class="result-card"><p>No SSL information available</p></div>';
     }
 
     html += '</div>';
@@ -376,18 +439,46 @@ function displaySSL(content, ssl) {
 function displayDNS(content, dns) {
     let html = '<div class="result-content">';
     
+    // Handle error case
+    if (dns.error) {
+        html += `<div class="result-card danger"><h4><i class="fas fa-exclamation-circle"></i> Error</h4><p>${dns.error}</p></div>`;
+        content.innerHTML = html + '</div>';
+        return;
+    }
+    
     if (dns.resolved) {
-        html += '<div class="result-card success"><h4>✓ DNS Resolution</h4>';
-        html += `<p><strong>IP Address:</strong> ${dns.resolved}</p>`;
+        html += '<div class="result-card success"><h4><i class="fas fa-check-circle"></i> DNS Resolution</h4>';
+        html += `<p><strong>IP Address:</strong> <span style="color: var(--secondary);">${dns.resolved}</span></p>`;
         html += '</div>';
     }
 
     if (dns.public !== undefined) {
-        const status = dns.public ? 'danger' : 'success';
-        const statusText = dns.public ? '⚠️ Public IP' : '✓ Private/Internal';
-        html += `<div class="result-card ${status}"><h4>${statusText}</h4>`;
-        html += `<p>Public: ${dns.public ? 'Yes' : 'No'}</p>`;
+        const isPublic = dns.public;
+        const statusClass = isPublic ? 'warning' : 'success';
+        const statusIcon = isPublic ? '<i class="fas fa-globe"></i>' : '<i class="fas fa-lock"></i>';
+        const statusText = isPublic ? '⚠️ Public IP Address' : '✓ Private/Internal IP';
+        
+        html += `<div class="result-card ${statusClass}"><h4>${statusIcon} ${statusText}</h4>`;
+        html += `<p><strong>Public IP:</strong> ${isPublic ? 'Yes - Exposed' : 'No - Protected'}</p>`;
         html += '</div>';
+    }
+
+    if (dns.records && typeof dns.records === 'object' && Object.keys(dns.records).length > 0) {
+        html += '<div class="result-card"><h4><i class="fas fa-list"></i> DNS Records</h4>';
+        Object.entries(dns.records).forEach(([type, records]) => {
+            if (Array.isArray(records) && records.length > 0) {
+                html += `<p><strong>${type}:</strong></p><ul style="margin: 5px 0 10px 20px;">`;
+                records.forEach(record => {
+                    html += `<li>${record}</li>`;
+                });
+                html += '</ul>';
+            }
+        });
+        html += '</div>';
+    }
+
+    if (!dns.resolved && !dns.public && !dns.records) {
+        html += '<div class="result-card"><p>No DNS information available</p></div>';
     }
 
     html += '</div>';
@@ -397,28 +488,40 @@ function displayDNS(content, dns) {
 function displayCORS(content, cors) {
     let html = '<div class="result-content">';
     
+    // Handle error case
+    if (cors.error) {
+        html += `<div class="result-card danger"><h4><i class="fas fa-exclamation-circle"></i> Error</h4><p>${cors.error}</p></div>`;
+        content.innerHTML = html + '</div>';
+        return;
+    }
+    
     if (cors.status) {
-        html += '<div class="result-card"><h4>HTTP Status</h4>';
-        html += `<p>${cors.status}</p>`;
+        html += '<div class="result-card"><h4><i class="fas fa-info-circle"></i> HTTP Status</h4>';
+        html += `<p><strong>Status Code:</strong> <span style="color: var(--secondary);">${cors.status}</span></p>`;
         html += '</div>';
     }
 
-    if (cors.headers && Object.keys(cors.headers).length > 0) {
-        html += '<div class="result-card"><h4>CORS Headers</h4>';
+    if (cors.headers && typeof cors.headers === 'object' && Object.keys(cors.headers).length > 0) {
+        html += '<div class="result-card"><h4><i class="fas fa-heading"></i> CORS Headers</h4>';
         Object.entries(cors.headers).forEach(([header, value]) => {
-            html += `<p><strong>${header}:</strong><br/>${String(value).substring(0, 100)}</p>`;
+            const displayValue = String(value).substring(0, 80);
+            html += `<p><strong>${header}:</strong><br/><span style="color: var(--text-dim);">${displayValue}</span></p>`;
         });
         html += '</div>';
     }
 
     if (cors.vulnerable) {
-        html += '<div class="result-card danger"><h4>⚠️ Vulnerability</h4>';
+        html += '<div class="result-card danger"><h4><i class="fas fa-exclamation-triangle"></i> ⚠️ CORS Vulnerability</h4>';
         html += `<p>${cors.vulnerable}</p>`;
         html += '</div>';
-    } else {
-        html += '<div class="result-card success"><h4>✓ No Vulnerabilities</h4>';
+    } else if (cors.status) {
+        html += '<div class="result-card success"><h4><i class="fas fa-check-circle"></i> ✓ No Vulnerabilities</h4>';
         html += '<p>CORS is properly configured</p>';
         html += '</div>';
+    }
+
+    if (!cors.status && !cors.headers && !cors.vulnerable) {
+        html += '<div class="result-card"><p>No CORS information available</p></div>';
     }
 
     html += '</div>';
@@ -428,27 +531,48 @@ function displayCORS(content, cors) {
 function displayPorts(content, ports) {
     let html = '<div class="result-content">';
     
-    if (ports.open && ports.open.length > 0) {
-        html += '<div class="result-card warning"><h4>📊 Open Ports</h4>';
-        html += '<table style="width: 100%; font-size: 11px; border-collapse: collapse;">';
-        html += '<tr style="border-bottom: 1px solid var(--primary);"><th style="text-align: left;">PORT</th><th style="text-align: left;">SERVICE</th></tr>';
+    // Handle error case
+    if (ports.error) {
+        html += `<div class="result-card danger"><h4><i class="fas fa-exclamation-circle"></i> Error</h4><p>${ports.error}</p></div>`;
+        content.innerHTML = html + '</div>';
+        return;
+    }
+    
+    if (ports.open && Array.isArray(ports.open) && ports.open.length > 0) {
+        html += '<div class="result-card warning"><h4><i class="fas fa-door-open"></i> Open Ports Found</h4>';
+        html += '<table style="width: 100%; font-size: 12px; border-collapse: collapse; margin: 10px 0;">';
+        html += '<tr style="border-bottom: 2px solid var(--primary); padding: 8px 0;"><th style="text-align: left; padding: 8px; color: var(--primary);">PORT</th><th style="text-align: left; padding: 8px; color: var(--primary);">SERVICE</th><th style="text-align: left; padding: 8px; color: var(--primary);">STATE</th></tr>';
+        
         ports.open.forEach(port => {
-            html += `<tr style="border-bottom: 1px solid var(--border);"><td>${port.port}</td><td>${port.service || 'Unknown'}</td></tr>`;
+            const portNum = typeof port === 'object' ? port.port : port;
+            const service = (typeof port === 'object' ? port.service : 'Unknown') || 'Unknown';
+            const state = (typeof port === 'object' ? port.state : 'open') || 'open';
+            html += `<tr style="border-bottom: 1px solid var(--border); padding: 8px 0;"><td style="padding: 8px; color: var(--secondary);">${portNum}</td><td style="padding: 8px;">${service}</td><td style="padding: 8px; color: var(--warning);">▲ ${state}</td></tr>`;
         });
         html += '</table>';
+        html += `<p style="color: var(--warning); margin-top: 10px;"><i class="fas fa-exclamation-triangle"></i> Found <strong>${ports.open.length}</strong> open port(s)</p>`;
         html += '</div>';
     }
 
-    if (ports.filtered && ports.filtered.length > 0) {
-        html += '<div class="result-card"><h4>🔒 Filtered Ports</h4>';
-        html += `<p>${ports.filtered.length} ports filtered</p>`;
+    if (ports.filtered && Array.isArray(ports.filtered) && ports.filtered.length > 0) {
+        html += '<div class="result-card"><h4><i class="fas fa-filter"></i> Filtered Ports</h4>';
+        html += `<p><strong>${ports.filtered.length} port(s)</strong> are filtered (blocked by firewall)</p>`;
+        html += '</div>';
+    }
+
+    if (ports.closed && Array.isArray(ports.closed) && ports.closed.length > 0) {
+        html += '<div class="result-card success"><h4><i class="fas fa-check-circle"></i> Closed Ports</h4>';
+        html += `<p><strong>${ports.closed.length} port(s)</strong> are closed</p>`;
         html += '</div>';
     }
 
     if (!ports.open || ports.open.length === 0) {
-        html += '<div class="result-card success"><h4>✓ No Open Ports</h4>';
-        html += '<p>Scan completed successfully</p>';
-        html += '</div>';
+        if (!ports.filtered && !ports.closed) {
+            html += '<div class="result-card"><p>No port scan information available</p></div>';
+        } else {
+            html += '<div class="result-card success"><h4><i class="fas fa-check-circle"></i> ✓ No Open Ports</h4>';
+            html += '<p>Scan completed - no critical ports exposed</p></div>';
+        }
     }
 
     html += '</div>';
