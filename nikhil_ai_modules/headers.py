@@ -2,7 +2,7 @@ import requests
 import re
 import sys
 import time
-from vapt_modules.output import info, warn, good, vuln, header, section, kv
+from nikhil_ai_modules.output import info, warn, good, vuln, header, section, kv
 
 
 def _show_analysis_progress():

@@ -2,7 +2,7 @@ import socket
 import ssl
 from concurrent.futures import ThreadPoolExecutor
 from colorama import Fore, Style
-from vapt_modules.output import good, info, warn, header, kv, section
+from nikhil_ai_modules.output import good, info, warn, header, kv, section
 
 ports = [21, 22, 25, 53, 80, 110, 139, 143, 443, 445, 3306, 3389, 8080]
 
@@ -36,7 +36,7 @@ def _http_probe(host, port, timeout=1.5):
             req = (
                 f"HEAD / HTTP/1.1\r\n"
                 f"Host: {host}\r\n"
-                f"User-Agent: VAPT-Toolkit-Pro\r\n"
+                f"User-Agent: NIKHIL-AI\r\n"
                 f"Connection: close\r\n\r\n"
             )
             s.sendall(req.encode())

@@ -3,7 +3,7 @@ import socket
 import shutil
 import subprocess
 from datetime import datetime, timezone
-from vapt_modules.output import header, section, info, good, warn, kv, vuln
+from nikhil_ai_modules.output import header, section, info, good, warn, kv, vuln
 
 
 def _parse_cert_time(value):

@@ -1,7 +1,7 @@
 import socket
 import ipaddress
 import requests
-from vapt_modules.output import header, info, good, warn, vuln, kv
+from nikhil_ai_modules.output import header, info, good, warn, vuln, kv
 
 
 def _is_public_ip(ip: str) -> bool:
@@ -32,7 +32,7 @@ def check_dns(domain):
 
         info("Resolved IP is public. Testing direct access via public IP.")
 
-        headers = {"User-Agent": "VAPT-Toolkit-Pro"}
+        headers = {"User-Agent": "NIKHIL-AI"}
         url = f"http://{ip}"
         r = requests.get(url, headers=headers, timeout=6, allow_redirects=True)
         kv("HTTP Status", r.status_code)

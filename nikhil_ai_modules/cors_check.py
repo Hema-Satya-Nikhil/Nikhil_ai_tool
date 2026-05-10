@@ -1,6 +1,6 @@
 import requests
 from urllib.parse import urlsplit
-from vapt_modules.output import header, section, info, warn, good, vuln, kv
+from nikhil_ai_modules.output import header, section, info, warn, good, vuln, kv
 
 
 def _apply_test_origin(headers, test_origin):
@@ -34,7 +34,7 @@ def check_cors(target):
 
         headers = {
             "Host": host,
-            "User-Agent": "VAPT-Toolkit-Pro",
+            "User-Agent": "NIKHIL-AI",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.9",
             "Connection": "close",

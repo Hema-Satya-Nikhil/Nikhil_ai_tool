@@ -1,12 +1,12 @@
-# VAPT Toolkit Pro (Python Edition)
+# NIKHIL AI (Python Edition)
 
-VAPT Toolkit Pro is a menu-driven terminal toolkit for fast, practical web and network security checks.
+NIKHIL AI is a menu-driven terminal toolkit for fast, practical web and network security checks.
 It is built for security testers who want strong scan visibility directly in one CLI workflow.
 
 ## Highlights
 
 - Kali-style CLI layout with clean module navigation.
-- Modular scanner architecture inside `vapt_modules/`.
+- Modular scanner architecture inside `nikhil_ai_modules/`.
 - Enhanced raw evidence output for HTTP and CORS checks.
 - Lightweight but improved port and TLS analysis.
 - Graceful operator controls (`clear`, `exit`, `Ctrl+C`).
@@ -91,11 +91,11 @@ At main menu prompt:
 ## Project Structure
 
 ```text
-VAPT-Toolkit-Pro (Python)
-├── vapt.py
+NIKHIL-AI (Python)
+├── nikhil_toolkit.py
 ├── install_deps.py
 ├── requirements.txt
-├── vapt_modules/
+├── nikhil_ai_modules/
 │   ├── __init__.py
 │   ├── banner.py
 │   ├── cors_check.py
@@ -118,8 +118,8 @@ VAPT-Toolkit-Pro (Python)
 ### Install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/VAPT-Toolkit-Pro-Python.git
-cd "VAPT-Toolkit-Pro-Python"
+git clone https://github.com/YOUR_USERNAME/NIKHIL-AI-Python.git
+cd "NIKHIL-AI-Python"
 python3 install_deps.py
 ```
 
@@ -135,14 +135,14 @@ python3 -m pip install --upgrade --force-reinstall -r requirements.txt
 ## Usage
 
 ```bash
-python3 vapt.py
+python3 nikhil_toolkit.py
 ```
 
 Then select module number `1` to `6`.
 
 ## Tool Preview
 
-![VAPT Toolkit Pro CLI Preview](image.png)
+![NIKHIL AI CLI Preview](image.png)
 
 ## Notes on Optional SSL Tooling
 

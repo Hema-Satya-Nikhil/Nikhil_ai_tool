@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Cross-platform dependency installer for VAPT Toolkit Pro."""
+"""Cross-platform dependency installer for NIKHIL AI."""
 
 import shutil
 import subprocess

@@ -12,13 +12,13 @@ except Exception:
 from urllib.parse import urlparse
 from colorama import Fore, Style
 
-from vapt_modules.banner import show_banner
-from vapt_modules.headers import check_headers
-from vapt_modules.ssl_check import check_ssl
-from vapt_modules.dns_check import check_dns
-from vapt_modules.cors_check import check_cors
-from vapt_modules.port_scan import scan_ports
-from vapt_modules.output import info, warn, prompt, ExitRequested
+from nikhil_ai_modules.banner import show_banner
+from nikhil_ai_modules.headers import check_headers
+from nikhil_ai_modules.ssl_check import check_ssl
+from nikhil_ai_modules.dns_check import check_dns
+from nikhil_ai_modules.cors_check import check_cors
+from nikhil_ai_modules.port_scan import scan_ports
+from nikhil_ai_modules.output import info, warn, prompt, ExitRequested
 
 
 # -------------------------------------------------
@@ -73,7 +73,7 @@ def menu():
 
     border = f"{Fore.CYAN}+{'-' * 66}+{Style.RESET_ALL}"
     print(border)
-    box_line(f"{Fore.LIGHTCYAN_EX}{'SELECT A SCAN MODULE':^64}{Style.RESET_ALL}")
+    box_line(f"{Fore.LIGHTCYAN_EX}{'SELECT THE TYPE OF SCAN':^64}{Style.RESET_ALL}")
     print(border)
     module_row(1, "Missing Security Headers (MSH)", Fore.GREEN)
     module_row(2, "DNS Misconfiguration Check", Fore.GREEN)
@@ -130,7 +130,7 @@ def main():
                 continue
 
             if choice.casefold() == "exit":
-                info("Exiting VAPT Toolkit Pro")
+                info("Exiting NIKHIL AI")
                 sys.exit()
             elif choice == "clear":
                 os.system("cls" if os.name == "nt" else "clear")
@@ -172,7 +172,7 @@ def main():
 
             elif choice == "6":
 
-                info("Exiting VAPT Toolkit Pro")
+                info("Exiting NIKHIL AI")
                 sys.exit()
 
             else:
@@ -180,11 +180,11 @@ def main():
                 warn("Invalid option")
 
         except (ExitRequested, KeyboardInterrupt):
-            info("Exiting VAPT Toolkit Pro")
+            info("Exiting NIKHIL AI")
             sys.exit()
 
         except EOFError:
-            info("Exiting VAPT Toolkit Pro")
+            info("Exiting NIKHIL AI")
             sys.exit()
 
         except Exception as e:
