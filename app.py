@@ -6,6 +6,10 @@ from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 import json
 import threading
+import io
+import sys
+import time
+from contextlib import redirect_stdout, redirect_stderr
 from urllib.parse import urlparse
 import ipaddress
 import socket
@@ -21,6 +25,38 @@ CORS(app)
 
 # Store scan results
 scan_results = {}
+
+def capture_function_output(func, *args):
+    """Capture stdout from scanning functions"""
+    try:
+        old_stdout = sys.stdout
+        old_stderr = sys.stderr
+        sys.stdout = buffer_out = io.StringIO()
+        sys.stderr = buffer_err = io.StringIO()
+        
+        result = func(*args)
+        
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
+        
+        output = buffer_out.getvalue()
+        errors = buffer_err.getvalue()
+        
+        return {
+            'success': True,
+            'result': result,
+            'output': output,
+            'errors': errors
+        }
+    except Exception as e:
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
+        return {
+            'success': False,
+            'error': str(e),
+            'output': buffer_out.getvalue() if 'buffer_out' in locals() else '',
+            'errors': buffer_err.getvalue() if 'buffer_err' in locals() else ''
+        }
 
 
 def validate_target(url):
@@ -79,10 +115,18 @@ def scan_headers():
         data = request.json
         url = validate_target(data.get('url', ''))
         
-        result = check_headers(url)
-        return jsonify({'success': True, 'data': result}), 200
+        scan_result = capture_function_output(check_headers, url)
+        
+        if scan_result['success']:
+            return jsonify({
+                'success': True,
+                'data': scan_result['result'],
+                'output': scan_result['output']
+            }), 200
+        else:
+            return jsonify({'error': scan_result['error'], 'output': scan_result['output']}), 400
     except Exception as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': f"Headers scan failed: {str(e)}"}), 500
 
 
 @app.route('/api/scan/ssl', methods=['POST'])
@@ -92,10 +136,18 @@ def scan_ssl():
         data = request.json
         url = validate_target(data.get('url', ''))
         
-        result = check_ssl(url)
-        return jsonify({'success': True, 'data': result}), 200
+        scan_result = capture_function_output(check_ssl, url)
+        
+        if scan_result['success']:
+            return jsonify({
+                'success': True,
+                'data': scan_result['result'],
+                'output': scan_result['output']
+            }), 200
+        else:
+            return jsonify({'error': scan_result['error'], 'output': scan_result['output']}), 400
     except Exception as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': f"SSL scan failed: {str(e)}"}), 500
 
 
 @app.route('/api/scan/dns', methods=['POST'])
@@ -107,10 +159,18 @@ def scan_dns():
         parsed = urlparse(url)
         domain = parsed.hostname
         
-        result = check_dns(domain)
-        return jsonify({'success': True, 'data': result}), 200
+        scan_result = capture_function_output(check_dns, domain)
+        
+        if scan_result['success']:
+            return jsonify({
+                'success': True,
+                'data': scan_result['result'],
+                'output': scan_result['output']
+            }), 200
+        else:
+            return jsonify({'error': scan_result['error'], 'output': scan_result['output']}), 400
     except Exception as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': f"DNS scan failed: {str(e)}"}), 500
 
 
 @app.route('/api/scan/cors', methods=['POST'])
@@ -120,10 +180,18 @@ def scan_cors():
         data = request.json
         url = validate_target(data.get('url', ''))
         
-        result = check_cors(url)
-        return jsonify({'success': True, 'data': result}), 200
+        scan_result = capture_function_output(check_cors, url)
+        
+        if scan_result['success']:
+            return jsonify({
+                'success': True,
+                'data': scan_result['result'],
+                'output': scan_result['output']
+            }), 200
+        else:
+            return jsonify({'error': scan_result['error'], 'output': scan_result['output']}), 400
     except Exception as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': f"CORS scan failed: {str(e)}"}), 500
 
 
 @app.route('/api/scan/ports', methods=['POST'])
@@ -135,10 +203,18 @@ def scan_ports_endpoint():
         parsed = urlparse(url)
         target = parsed.hostname
         
-        result = scan_ports(target)
-        return jsonify({'success': True, 'data': result}), 200
+        scan_result = capture_function_output(scan_ports, target)
+        
+        if scan_result['success']:
+            return jsonify({
+                'success': True,
+                'data': scan_result['result'],
+                'output': scan_result['output']
+            }), 200
+        else:
+            return jsonify({'error': scan_result['error'], 'output': scan_result['output']}), 400
     except Exception as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': f"Port scan failed: {str(e)}"}), 500
 
 
 @app.route('/api/scan/all', methods=['POST'])
@@ -150,17 +226,27 @@ def scan_all():
         parsed = urlparse(url)
         domain = parsed.hostname
         
-        results = {
-            'headers': check_headers(url),
-            'ssl': check_ssl(url),
-            'dns': check_dns(domain),
-            'cors': check_cors(url),
-            'ports': scan_ports(domain)
-        }
+        results = {}
+        
+        # Run each scan with error handling
+        headers_result = capture_function_output(check_headers, url)
+        results['headers'] = headers_result['result'] if headers_result['success'] else {'error': headers_result['error']}
+        
+        ssl_result = capture_function_output(check_ssl, url)
+        results['ssl'] = ssl_result['result'] if ssl_result['success'] else {'error': ssl_result['error']}
+        
+        dns_result = capture_function_output(check_dns, domain)
+        results['dns'] = dns_result['result'] if dns_result['success'] else {'error': dns_result['error']}
+        
+        cors_result = capture_function_output(check_cors, url)
+        results['cors'] = cors_result['result'] if cors_result['success'] else {'error': cors_result['error']}
+        
+        ports_result = capture_function_output(scan_ports, domain)
+        results['ports'] = ports_result['result'] if ports_result['success'] else {'error': ports_result['error']}
         
         return jsonify({'success': True, 'data': results}), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': f"Full scan failed: {str(e)}"}), 500
 
 
 if __name__ == '__main__':

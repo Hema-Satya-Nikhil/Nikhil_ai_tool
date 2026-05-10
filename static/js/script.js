@@ -6,6 +6,37 @@ let currentModule = 'all';
 let scanResults = null;
 let scanInProgress = false;
 let scanStartTime = null;
+let loadingInterval = null;
+
+// ========================================
+// LOADING SCREEN MANAGEMENT
+// ========================================
+
+function initializeLoadingScreen() {
+    const loadingScreen = document.getElementById('loading-screen');
+    const timerText = document.getElementById('timer-text');
+    const progressBar = document.getElementById('loading-progress');
+    let remainingTime = 10;
+    
+    // Update timer every second
+    loadingInterval = setInterval(() => {
+        remainingTime--;
+        timerText.textContent = remainingTime;
+        
+        if (remainingTime <= 0) {
+            clearInterval(loadingInterval);
+            hideLoadingScreen();
+        }
+    }, 1000);
+}
+
+function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loading-screen');
+    loadingScreen.classList.add('hidden');
+    setTimeout(() => {
+        loadingScreen.style.display = 'none';
+    }, 500);
+}
 
 // ========================================
 // UTILITY FUNCTIONS
@@ -215,8 +246,11 @@ function switchTab(tab) {
         pane.classList.add('active');
     }
 
-    // Add active class to button
-    event.target.closest('.tab-btn').classList.add('active');
+    // Add active class to clicked button
+    const activeBtn = document.querySelector(`[onclick="switchTab('${tab}')"]`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
 
     // Display content
     displayTabContent(tab);
@@ -224,6 +258,11 @@ function switchTab(tab) {
 
 function displayTabContent(tab) {
     const content = document.getElementById(`${tab}-content`);
+    
+    if (!content) {
+        console.error(`Content element not found for tab: ${tab}`);
+        return;
+    }
     
     if (tab === 'summary') {
         displaySummary(content);
@@ -237,36 +276,42 @@ function displayTabContent(tab) {
         displayCORS(content, scanResults.cors);
     } else if (tab === 'ports' && scanResults && scanResults.ports) {
         displayPorts(content, scanResults.ports);
+    } else if (scanResults) {
+        // Fallback for missing tab data
+        content.innerHTML = '<p>No data available for this tab</p>';
     }
 }
 
 function displaySummary(content) {
-    if (!scanResults) return;
+    if (!scanResults || typeof scanResults !== 'object') {
+        content.innerHTML = '<div class="result-card"><p>No scan results available</p></div>';
+        return;
+    }
 
     content.innerHTML = `
         <div class="result-card success">
-            <h4><i class="fas fa-check-circle"></i> Total Issues Found</h4>
-            <p>${Object.keys(scanResults).length} modules scanned</p>
+            <h4><i class="fas fa-check-circle"></i> Total Modules Scanned</h4>
+            <p>${Object.keys(scanResults).length} modules analyzed</p>
         </div>
         <div class="result-card">
             <h4><i class="fas fa-shield-alt"></i> Security Headers</h4>
-            <p>${scanResults.headers ? 'Analyzed' : 'Not scanned'}</p>
+            <p>${scanResults.headers ? (scanResults.headers.error ? 'Error: ' + scanResults.headers.error : 'Analyzed') : 'Not scanned'}</p>
         </div>
         <div class="result-card">
             <h4><i class="fas fa-lock"></i> SSL/TLS Status</h4>
-            <p>${scanResults.ssl ? 'Analyzed' : 'Not scanned'}</p>
+            <p>${scanResults.ssl ? (scanResults.ssl.error ? 'Error: ' + scanResults.ssl.error : 'Analyzed') : 'Not scanned'}</p>
         </div>
         <div class="result-card">
             <h4><i class="fas fa-network-wired"></i> DNS Check</h4>
-            <p>${scanResults.dns ? 'Analyzed' : 'Not scanned'}</p>
+            <p>${scanResults.dns ? (scanResults.dns.error ? 'Error: ' + scanResults.dns.error : 'Analyzed') : 'Not scanned'}</p>
         </div>
         <div class="result-card">
             <h4><i class="fas fa-share-alt"></i> CORS Policy</h4>
-            <p>${scanResults.cors ? 'Analyzed' : 'Not scanned'}</p>
+            <p>${scanResults.cors ? (scanResults.cors.error ? 'Error: ' + scanResults.cors.error : 'Analyzed') : 'Not scanned'}</p>
         </div>
         <div class="result-card">
             <h4><i class="fas fa-door-open"></i> Open Ports</h4>
-            <p>${scanResults.ports ? 'Scanned' : 'Not scanned'}</p>
+            <p>${scanResults.ports ? (scanResults.ports.error ? 'Error: ' + scanResults.ports.error : 'Scanned') : 'Not scanned'}</p>
         </div>
     `;
 }
@@ -475,6 +520,11 @@ document.addEventListener('keydown', (e) => {
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('NIKHIL AI Frontend Initialized');
+    
+    // Initialize loading screen with 10-second countdown
+    initializeLoadingScreen();
+    
+    // Set default module
     selectModule('all');
     
     // Add keyboard hint
