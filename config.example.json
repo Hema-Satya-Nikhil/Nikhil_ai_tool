@@ -1,0 +1,38 @@
+{
+  "project_name": "Default Project",
+  "timeout": 6.0,
+  "request_interval": 1.0,
+  "threads": 3,
+  "scan_workers": 3,
+  "max_requests": 250,
+  "max_response_bytes": 1048576,
+  "max_redirects": 5,
+  "max_retries": 1,
+  "max_crawl_depth": 2,
+  "max_urls": 50,
+  "user_agent": "NIKHIL-AI-Safe/3.0 (authorized assessment)",
+  "safe_mode": true,
+  "output_dir": "output",
+  "database_path": "output/nikhil.sqlite3",
+  "log_dir": "logs",
+  "report_dir": "output/reports",
+  "port_scan_ports": [21, 22, 25, 53, 80, 110, 139, 143, 443, 445, 3306, 3389, 8080],
+  "enabled_integrations": {
+    "nmap": false,
+    "subfinder": false,
+    "amass": false,
+    "httpx": false,
+    "dnsx": false,
+    "whatweb": false,
+    "sslyze": false,
+    "nuclei": false
+  },
+  "threat_intelligence": {
+    "enabled": false,
+    "cache_ttl_seconds": 86400
+  },
+  "scope": {
+    "in_scope": [],
+    "exclusions": []
+  }
+}

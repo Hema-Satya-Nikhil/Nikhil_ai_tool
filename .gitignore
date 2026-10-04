@@ -44,8 +44,11 @@ env/
 .DS_Store
 Thumbs.db
 
-# Project-specific
+# Project-specific local state (scope, SQLite DB, generated reports, logs)
+config.json
+projects/
 output/
+logs/
 *.log
 .coverage
 .pytest_cache/

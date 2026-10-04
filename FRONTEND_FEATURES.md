@@ -1,3 +1,7 @@
+> **Security / deployment notice (current):** This is a legacy document from the earlier prototype and has not been fully reconciled with the scope-first upgrade. The Flask dashboard has no user authentication and is intended for local use only. Do not expose it to the public internet. Deployment steps and production-readiness claims below are not security-validated; use the current `README.md` as the source of truth.
+
+---
+
 # 🎯 NIKHIL AI Frontend - Complete Feature Summary
 
 ## 🚀 What Was Created
