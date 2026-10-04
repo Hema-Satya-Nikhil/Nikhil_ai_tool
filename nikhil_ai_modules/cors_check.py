@@ -1,99 +1,80 @@
-import requests
-from urllib.parse import urlsplit
-from nikhil_ai_modules.output import header, section, info, warn, good, vuln, kv
+"""Low-impact CORS behavior check using a non-existent test origin."""
+from __future__ import annotations
+
+from nikhil_ai_modules.context import resolve_context
+from nikhil_ai_modules.evidence import sanitize_url
+from nikhil_ai_modules.output import good, header, info, kv, section, warn
+
+TEST_ORIGIN = "https://untrusted.invalid"
 
 
 def _apply_test_origin(headers, test_origin):
     previous = headers.get("Origin")
-    if previous:
-        headers["Origin"] = test_origin
-        return "replaced", previous
     headers["Origin"] = test_origin
-    return "added", None
+    return ("replaced", previous) if previous else ("added", None)
 
 
-def check_cors(target):
+def analyze_cors(status_code: int, response_headers, test_origin: str = TEST_ORIGIN) -> dict:
+    headers = {str(key).lower(): str(value) for key, value in response_headers.items()}
+    acao = headers.get("access-control-allow-origin")
+    credentials = headers.get("access-control-allow-credentials", "")
+    reflected = bool(acao and acao.strip().lower() == test_origin.lower())
+    wildcard = bool(acao and acao.strip() == "*")
+    null_origin = bool(acao and acao.strip().lower() == "null")
+    risky = wildcard or reflected or null_origin
+    credentialed_reflection = reflected and credentials.strip().lower() == "true"
+    return {
+        "status": status_code,
+        "headers": {
+            "Access-Control-Allow-Origin": acao,
+            "Access-Control-Allow-Credentials": credentials or None,
+            "Access-Control-Allow-Methods": headers.get("access-control-allow-methods"),
+            "Access-Control-Allow-Headers": headers.get("access-control-allow-headers"),
+            "Access-Control-Expose-Headers": headers.get("access-control-expose-headers"),
+        },
+        "test_origin": test_origin,
+        "wildcard": wildcard,
+        "reflected_origin": reflected,
+        "null_origin": null_origin,
+        "credentials": credentials.strip().lower() == "true",
+        "vulnerable": "Permissive origin behavior observed; manual review required" if risky else None,
+        "confidence": "HIGH" if credentialed_reflection else "MEDIUM" if risky else "LOW",
+    }
 
-    if not target.startswith("http"):
-        target = "https://" + target
 
-    parsed_target = urlsplit(target)
-    host = parsed_target.netloc
-    path = parsed_target.path or "/"
-    if parsed_target.query:
-        path = f"{path}?{parsed_target.query}"
-
-    test_origins = ["evil.com"]
-
+def check_cors(target, context=None):
+    ctx = resolve_context(context)
+    headers = {"Origin": TEST_ORIGIN, "Accept": "text/html,application/json;q=0.9,*/*;q=0.8"}
+    response = ctx.http.get(target, headers=headers)
+    result = analyze_cors(response.status_code, response.headers)
+    result.update({"target": sanitize_url(response.url), "potential_findings": []})
     header("CORS Misconfiguration Check")
-    info(f"Target: {target}")
-
-    for origin in test_origins:
-
-        section(f"Testing Origin: {origin}")
-
-        headers = {
-            "Host": host,
-            "User-Agent": "NIKHIL-AI",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Connection": "close",
-            "Cache-Control": "no-cache",
-            "Pragma": "no-cache",
-        }
-        action, previous_origin = _apply_test_origin(headers, origin)
-        if action == "added":
-            info(f"Origin header added for test: {origin}")
-        else:
-            info(f"Origin header replaced: {previous_origin} -> {origin}")
-
-        try:
-            r = requests.get(target, headers=headers, timeout=5)
-
-            acao = r.headers.get("Access-Control-Allow-Origin")
-            acc = r.headers.get("Access-Control-Allow-Credentials")
-            acam = r.headers.get("Access-Control-Allow-Methods")
-            acah = r.headers.get("Access-Control-Allow-Headers")
-            acae = r.headers.get("Access-Control-Expose-Headers")
-
-            section("Raw Request")
-            print(f"GET {path} HTTP/1.1")
-            for key, value in headers.items():
-                print(f"{key}: {value}")
-            print()
-
-            section("Raw Response")
-            print(f"HTTP/1.1 {r.status_code} {r.reason}")
-            for key, value in r.headers.items():
-                print(f"{key}: {value}")
-            print()
-
-            section("CORS Header Analysis")
-            if acao:
-                kv("Access-Control-Allow-Origin", acao)
-                kv("Access-Control-Allow-Credentials", acc or "not set")
-                kv("Access-Control-Allow-Methods", acam or "not set")
-                kv("Access-Control-Allow-Headers", acah or "not set")
-                kv("Access-Control-Expose-Headers", acae or "not set")
-
-                acao_value = acao.strip().lower()
-                origin_value = origin.strip().lower()
-                reflected_origin = (acao_value == origin_value) or (origin_value in acao_value)
-
-                if r.status_code == 200 and acao_value == "*":
-                    warn("CORS Misconfiguration: 200 OK with Access-Control-Allow-Origin: *")
-                elif r.status_code == 200 and reflected_origin:
-                    warn("CORS Misconfiguration: 200 OK with reflected/accepted Origin")
-                elif acao_value == "null":
-                    warn("Potential CORS risk: null origin allowed")
-                else:
-                    good("No high-confidence CORS acceptance pattern detected")
-
-                if acc == "true" and (acao_value == "*" or reflected_origin):
-                    warn("High risk: credentials allowed with permissive/reflected origin")
-
-            else:
-                good("No Access-Control-Allow-Origin header detected")
-
-        except Exception as e:
-            vuln(f"Request failed: {e}")
+    info(f"Target: {sanitize_url(response.url)}")
+    section("CORS Header Analysis")
+    kv("HTTP Status", response.status_code)
+    for name, value in result["headers"].items():
+        if value:
+            kv(name, value)
+    if result["vulnerable"]:
+        warn(result["vulnerable"])
+        result["potential_findings"].append({
+            "title": "Potentially permissive CORS policy",
+            "category": "CORS",
+            "target": response.url,
+            "endpoint": response.url,
+            "severity": "MEDIUM" if result["credentials"] and result["reflected_origin"] else "LOW",
+            "confidence": result["confidence"],
+            "description": "The response accepted a non-existent test origin. Actual impact depends on browser behavior, credentials, and the sensitivity of the resource.",
+            "evidence": f"Access-Control-Allow-Origin={result['headers'].get('Access-Control-Allow-Origin')!r}; credentials={result['credentials']}; test origin={TEST_ORIGIN}.",
+            "observed_behavior": result["vulnerable"],
+            "reproduction_notes": "Repeat with a researcher-controlled origin and verify in a browser using an authorized test account. No data was exfiltrated.",
+            "remediation": "Allow only explicitly trusted origins; avoid reflecting arbitrary Origin values and review credentialed CORS responses.",
+            "status": "NEEDS_REVIEW",
+            "request_method": "GET",
+            "response_headers": response.headers,
+            "status_code": response.status_code,
+            "response_size": getattr(response, "_nikhil_response_size", len(response.content)),
+        })
+    else:
+        good("No permissive CORS acceptance pattern observed")
+    return result

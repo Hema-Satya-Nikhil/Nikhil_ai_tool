@@ -1,18 +1,8 @@
-# Core runtime dependencies (required on Kali/Linux/macOS/Windows)
+# Python 3.10+ runtime dependencies (Windows, Linux, macOS)
 requests>=2.31.0
 colorama>=0.4.6
-
-# Web framework for frontend dashboard
 Flask>=2.3.0
-Flask-CORS>=4.0.0
 
-# Optional (advanced SSL/TLS module integrations):
-# sslyze provides the `sslyze` CLI used by Module 3 when available.
-# Uncomment if you want SSLyze integration through pip install.
-# sslyze>=6.0.0
-
-# Note:
-# `nmap` is used as an external system tool (not a pip package).
-# Install it via OS package manager:
-# - Kali/Debian: sudo apt install nmap
-# - Windows: install Nmap from https://nmap.org/download.html
+# Optional SSL/TLS integrations are not required and are disabled by default.
+# Nmap is an optional operating-system package; NIKHIL AI does not install it.
+# The native TLS and port checks work without optional tools.

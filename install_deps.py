@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Cross-platform dependency installer for NIKHIL AI."""
+"""Cross-platform installer for the small, required NIKHIL AI dependency set."""
+from __future__ import annotations
 
 import shutil
 import subprocess
@@ -7,50 +8,35 @@ import sys
 from pathlib import Path
 
 
-def run(cmd):
-    print(f"[i] Running: {' '.join(cmd)}")
-    return subprocess.run(cmd, check=False).returncode
+def run(command):
+    print(f"[i] Running: {' '.join(str(part) for part in command)}")
+    return subprocess.run(command, check=False).returncode
 
 
 def main():
     root = Path(__file__).resolve().parent
-    req = root / "requirements.txt"
-
-    if not req.exists():
-        print("[!] requirements.txt not found.")
+    requirements = root / "requirements.txt"
+    if sys.version_info < (3, 10):
+        print("[-] Python 3.10 or newer is required.")
+        return 2
+    if not requirements.exists():
+        print("[-] requirements.txt was not found.")
         return 1
 
-    code = run(
-        [
-            sys.executable,
-            "-m",
-            "pip",
-            "install",
-            "--upgrade",
-            "--force-reinstall",
-            "-r",
-            str(req),
-        ]
-    )
-    if code != 0:
-        print("[!] Python dependency install failed.")
+    code = run([sys.executable, "-m", "pip", "install", "-r", str(requirements)])
+    if code:
+        print("[-] Dependency installation failed. Check the pip output above.")
         return code
-
-    print("[+] Core Python dependencies installed/reinstalled successfully.")
-
+    print("[+] Core Python dependencies installed.")
     if shutil.which("nmap"):
-        print("[+] nmap detected on system.")
+        print("[i] Optional nmap detected; external-tool scans remain disabled in Safe Mode.")
     else:
-        print("[!] nmap not found (optional but recommended for SSL module deep scan).")
-        print("    Kali/Debian: sudo apt install nmap")
-        print("    Windows: https://nmap.org/download.html")
-
+        print("[i] Optional nmap not installed; all built-in scanners remain available.")
     if shutil.which("sslyze"):
-        print("[+] sslyze CLI detected on system.")
+        print("[i] Optional sslyze detected; use only in an authorized environment and outside Safe Mode.")
     else:
-        print("[i] sslyze CLI not detected (optional).")
-        print(f"    Install via: {sys.executable} -m pip install --upgrade --force-reinstall sslyze")
-
+        print("[i] Optional sslyze not installed; native TLS checks remain available.")
+    print("[i] Run tests with: python -m unittest discover -s tests -v")
     return 0
 
 
